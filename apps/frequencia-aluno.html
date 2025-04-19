@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Frequência</title>
+    <link rel="stylesheet" href="../css/frequencia.css">
+    <script src="../js/frequencia.js" defer></script>
+</head>
+<body>
+    <div class="freq-container">
+        <div class="freq-header">
+            <h1>Registro de Frequência</h1>
+        </div>
+
+        <div class="calendar-controls">
+            <button id="prevMonth" class="calendar-nav-btn">‹</button>
+            <h3 id="monthYear"></h3>
+            <button id="nextMonth" class="calendar-nav-btn">›</button>
+        </div>
+        <div id="calendarContainer"></div> <!- - O CALENDÁRIO DEVE ESTAR AQUI - ->
+
+        <div class="freq-turma-selector" id="turmasContainer"></div>
+
+        <div class="freq-aluno-list" id="alunosList"></div>
+
+        <div class="freq-relatorio">
+            <div id="relatorioContent"></div>
+        </div>
+    </div>
+</body>
+</html>

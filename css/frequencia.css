@@ -1,0 +1,354 @@
+/* =============== LAYOUT COMPACTO =============== */
+.freq-container {
+    max-width: 1000px;
+    margin: 1rem auto;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* =============== SELEÇÃO DE TURMA =============== */
+.turma-select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid #3b82f6;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    background: white;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    background-size: 12px;
+}
+
+/* =============== CALENDÁRIO COMPACTO =============== */
+.calendar-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+#calendarContainer {
+    display: grid;
+    grid-template-columns: repeat(7, 32px);
+    gap: 2px;
+    padding: 0.5rem;
+    background: white;
+    border-radius: 6px;
+}
+
+.calendar-weekday {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #64748b;
+    padding: 0.2rem;
+}
+
+.calendar-weekday.weekend {
+    color: #dc2626; /* Vermelho para sábado e domingo */
+}
+
+.calendar-day {
+    padding: 4px;
+    font-size: 0.8rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.calendar-day.weekend {
+    color: #dc2626; /* Vermelho para os números de sábado e domingo */
+    /* Você pode adicionar um background diferente se preferir:
+    background-color: #fdecea;
+    */
+}
+
+.calendar-day.has-data {
+    background: #e0f2fe;
+}
+
+.calendar-day.selected {
+    background: #3b82f6;
+    color: white;
+    font-weight: bold;
+}
+
+/* =============== LISTA DE ALUNOS =============== */
+.freq-aluno-list {
+    background: white;
+    border-radius: 6px;
+    margin: 1rem 0;
+}
+
+.freq-aluno-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.freq-aluno-info {
+    display: flex;
+    align-items: center;
+}
+
+.expand-indicator {
+    width: 12px;
+    height: 12px;
+    border: 1px solid #6b7280;
+    border-radius: 2px;
+    margin-right: 0.5rem;
+    cursor: pointer;
+    display: inline-block; /* Para alinhar com o nome */
+    position: relative; /* Para posicionar o sinal de mais dentro */
+}
+
+.expand-indicator::before {
+    content: '+';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+.freq-aluno-item.relatorio-aberto .expand-indicator::before {
+    content: '-';
+}
+
+.freq-aluno-nome {
+    cursor: pointer; /* Manter o cursor de clique no nome também */
+    font-size: 0.9rem;
+    color: #1e293b;
+}
+
+.freq-percentual {
+    font-size: 0.8rem;
+    color: #3b82f6;
+    font-weight: 600;
+    margin-left: auto;
+    margin-right: 1rem;
+}
+
+.freq-status {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.freq-btn-presente, .freq-btn-falta {
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    min-width: 60px;
+    border: none;
+    cursor: pointer;
+}
+
+.freq-btn-presente {
+    background: #10b98120;
+    color: #10b981;
+}
+
+.freq-btn-presente.active {
+    background: #10b981;
+    color: white;
+}
+
+.freq-btn-falta {
+    background: #ef444420;
+    color: #ef4444;
+}
+
+.freq-btn-falta.active {
+    background: #ef4444;
+    color: white;
+}
+
+/* =============== RELATÓRIO =============== */
+.relatorio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.btn-exportar {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.dias-registrados {
+    background: white;
+    padding: 1rem;
+    border-radius: 6px;
+}
+
+.relatorio-aluno-resumo {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.relatorio-aluno-resumo:last-child {
+    border-bottom: none;
+}
+
+.aluno-nome-resumo {
+    font-size: 0.9rem;
+    color: #1e293b;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    flex-grow: 1; /* Para o nome ocupar mais espaço */
+}
+
+.percentual-resumo {
+    font-size: 0.8rem;
+    color: #3b82f6;
+    font-weight: 600;
+    margin-left: 1rem;
+}
+
+/* =============== RELATÓRIO INDIVIDUAL DO ALUNO =============== */
+.relatorio-individual {
+    background: #f0f9ff;
+    border: 1px solid #bee3f8;
+    border-radius: 4px;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.relatorio-individual-header h4 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: #1e293b;
+}
+
+.relatorio-individual-dias {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.3rem;
+}
+
+.relatorio-individual-dias .dia {
+    padding: 0.3rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+    background-color: white;
+}
+
+.relatorio-individual-dias .dia.presente {
+    background: #dcfce7;
+    color: #14532d;
+    border-color: #a7f3d0;
+}
+
+.relatorio-individual-dias .dia.falta {
+    background: #fee2e2;
+    color: #7f1d1d;
+    border-color: #fca5a5;
+}
+
+.relatorio-individual-dias .dia.atestado {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fcd34d;
+}
+
+/* =============== NOVOS BOTÕES =============== */
+.freq-btn-atestado {
+    background: #f59e0b20;
+    color: #d97706;
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.freq-btn-atestado.active {
+    background: #f59e0b;
+    color: white;
+}
+
+.freq-btn-remover {
+    background: #ef444420;
+    color: #ef4444;
+    margin-left: 0.5rem;
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 0.6rem;
+    cursor: pointer;
+}
+
+/* =============== AJUSTES DE LAYOUT =============== */
+.freq-status {
+    gap: 0.3rem;
+}
+
+.freq-btn-presente,
+.freq-btn-falta,
+.freq-btn-atestado {
+    min-width: 45px;
+    padding: 0.3rem;
+}
+
+/* =============== STATUS NO RELATÓRIO =============== */
+.dia.atestado {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #f59e0b;
+}
+
+/* =============== RESPONSIVO =============== */
+@media (max-width: 768px) {
+    .freq-container {
+        padding: 0.8rem;
+    }
+
+    .freq-aluno-item {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .freq-status {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .dias-lista {
+        grid-template-columns: 1fr;
+    }
+
+    .relatorio-individual-dias {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
+
+    .situacao-normal {
+        color: #10b981; /* Verde para situação normal */
+        font-weight: bold;
+        margin-left: 0.5rem;
+    }
+    
+    .situacao-alerta {
+        color: #ef4444; /* Vermelho para alerta de faltas */
+        font-weight: bold;
+        margin-left: 0.5rem;
+    }
+}

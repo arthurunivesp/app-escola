@@ -1,0 +1,140 @@
+body {
+    background-color: #BFDBFE;
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #1E3A8A;
+  }
+  
+  .container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 100%;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #1E3A8A;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    color: #1E3A8A;
+  }
+  
+  input[type="text"],
+  input[type="time"],
+  select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #3B82F6;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #1E3A8A;
+    background-color: #F0F8FF;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+  }
+  
+  input[type="text"]:focus,
+  input[type="time"]:focus,
+  select:focus {
+    outline: none;
+    border-color: #1E3A8A;
+  }
+  
+  input[type="radio"] {
+    margin-right: 8px;
+  }
+  
+  .radio-group {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+  }
+  
+  button {
+    width: 100%;
+    padding: 12px;
+    background-color: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  button:hover {
+    background-color: #1E3A8A;
+  }
+  
+  button:disabled {
+    background-color: #93C5FD;
+    cursor: not-allowed;
+  }
+  
+  .result {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #E0F2FE;
+    border-radius: 8px;
+    border: 1px solid #3B82F6;
+  }
+  
+  .result h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #1E3A8A;
+  }
+  
+  .result ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .result li {
+    padding: 8px 0;
+    border-bottom: 1px solid #BFDBFE;
+    font-size: 0.95rem;
+  }
+  
+  .result li:last-child {
+    border-bottom: none;
+  }
+  
+  .error {
+    color: #DC2626;
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.9rem;
+  }
+  
+  @media (max-width: 480px) {
+    .container {
+      padding: 20px;
+    }
+  
+    h1 {
+      font-size: 1.5rem;
+    }
+  
+    button {
+      padding: 10px;
+    }
+  }

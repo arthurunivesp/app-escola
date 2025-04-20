@@ -1,0 +1,6 @@
+# .gitattributes
+*.js linguagem=JavaScript
+*.jsx linguagem=JavaScript
+*.html linguagem=HTML
+*.css linguagem=CSS
+*.json linguagem=JSON

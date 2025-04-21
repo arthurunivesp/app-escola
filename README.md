@@ -114,3 +114,15 @@ Para melhorar ainda mais:
 2. Inclua exemplos de dados CSV
 3. Documente o formato dos arquivos de dados
 4. Adicione um diagrama de sequência de autenticação
+
+📌 Quadro – Delimitação do Problema da Aplicação Web Escolar (Refinado)
+
+Questão	Resposta para sua Aplicação Web
+Por que o cliente precisa da aplicação Web?	Para organizar horários escolares, monitorar faltas e saídas antecipadas, e gerar automaticamente aulas adicionais baseadas no plano de estudo dos professores.
+Qual é o principal objetivo da aplicação?	Identificar alunos que perderam aulas e facilitar a preparação de aulas adicionais, permitindo que os professores acessem rapidamente quais conteúdos devem ser reforçados.
+Que processos a aplicação deve controlar ou executar?	- Admin: Gerencia usuários, cadastra horários, monitora frequência, registra saídas antecipadas e gera relatórios de defasagem escolar.<br> - Professores: Consultam dados, verificam horários e acessam informações sobre os alunos que precisam de reforço acadêmico.
+Quem serão os usuários da aplicação?	- Administrador (Admin): Responsável por todas as operações do sistema.<br> - Professores: Consultam dados sobre os alunos, verificam quais precisam de aulas adicionais e organizam estratégias de reforço.
+Quais são as tarefas dos usuários da aplicação?	- Admin: Mantém os arquivos de horários, registra frequência, controla saídas antecipadas e gera relatórios detalhados sobre defasagem escolar.<br> - Professores: Acessam os dados gerados pelo sistema para saber quais alunos perderam aulas, quais conteúdos precisam ser reforçados e organizam estratégias de recuperação.
+
+🔹 Melhorias e Aplicação no Sistema
+✔ Automatizar a identificação dos alunos com defasagem – O sistema pode gerar uma lista com os alunos que precisam de reforço e quais matérias foram impactadas. ✔ Facilitar a consulta para os professores – No painel, cada professor pode acessar rapidamente os conteúdos perdidos por seus alunos. ✔ Gerar relatórios mais completos – Além de listar alunos ausentes, o relatório pode sugerir quais aulas de recuperação já fazem parte do plano de ação dos professores.

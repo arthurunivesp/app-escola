@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Frequência e Saídas</title>
+    <link rel="stylesheet" href="../css/relatorio.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Relatório de Frequência e Saídas</h1>
+
+        <div class="filters">
+            <label for="selectTurma">Selecione a Turma:</label>
+            <select id="selectTurma">
+                <!-- Turmas serão preenchidas via JavaScript -->
+            </select>
+        </div>
+
+        <div id="tabelaRelatorio">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Aluno</th>
+                        <th>Frequência (%)</th>
+                        <th>Saídas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dados serão preenchidos via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../js/relatorio.js"></script>
+</body>
+</html>

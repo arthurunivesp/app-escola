@@ -12,8 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
         '1º SERIE -A', '1º SERIE -B', '2º ADM', '2º SERIE -B LGH',
         '3º SERIE A CNT', '3º SERIE B LGH', '3º SERIE VENDAS'
     ];
-    const disciplinasExcluidas = ['ALMOÇO', 'CAFÉ', 'LANCHE', 'TUTORIA', 'CAFÉ DA MANHÃ'];
+    const disciplinasExcluidas = ['ALMOÇO', 'CAFÉ', 'LANCHE', 'CAFÉ DA MANHÃ'];
     const disciplinasSemProfessor = ['ELETIVA', 'CLUBE'];
+    const diasDaSemana = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+
+    // Configuração do período (mês de abril de 2025)
+    const MES_ANALISADO = '2025-04'; // Período fixo para abril de 2025
+    const SEMANAS_NO_MES = 4; // Assumindo 4 semanas completas (segunda a sexta)
 
     // Inicialização
     init();
@@ -52,7 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const [index, aluno] of alunos.entries()) {
             const frequenciaPercentual = calcPercentual(aluno);
             const numeroSaidas = contarSaidas(aluno.nome, turma);
-            const disciplinasAfetadas = await obterDisciplinasAfetadas(aluno, turma);
+            const { faltas, saidas } = await obterDisciplinasAfetadas(aluno, turma);
+            const frequenciaPorDisciplina = await calcularFrequenciaPorDisciplina(aluno, turma);
 
             // Adicionar linha à tabela com acordeão
             const row = document.createElement('tr');
@@ -65,9 +71,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="relatorio-individual aluno-${turma.replace(/\s+/g, '-')}-${index}">
                         <div class="disciplinas-lista">
-                            ${disciplinasAfetadas.length > 0 ?
-                                disciplinasAfetadas.map(item => `<span class="disciplina">${item}</span>`).join('') :
-                                '<span>Nenhuma disciplina afetada</span>'}
+                            <h4 style="display: block; width: 100%;">Faltas:</h4>
+                            <div class="disciplinas-sublista">
+                                ${faltas.length > 0 ?
+                                    faltas.map(item => `<div style="margin-bottom: 0.5rem;">${item}</div>`).join('') :
+                                    '<div style="margin-bottom: 0.5rem;">Nenhuma falta registrada</div>'}
+                            </div>
+                            <h4 style="display: block; width: 100%; margin-top: 1rem;">Saídas Antecipadas:</h4>
+                            <div class="disciplinas-sublista">
+                                ${saidas.length > 0 ?
+                                    saidas.map(item => `<div style="margin-bottom: 0.5rem;">${item}</div>`).join('') :
+                                    '<div style="margin-bottom: 0.5rem;">Nenhuma saída registrada</div>'}
+                            </div>
+                        </div>
+                        <div class="frequencia-por-disciplina" style="margin-top: 1rem;">
+                            <h4>Frequência por Disciplina (Mês de Abril):</h4>
+                            <div class="disciplinas-lista">
+                                ${frequenciaPorDisciplina.length > 0 ?
+                                    frequenciaPorDisciplina.map(item => `<span class="disciplina ${item.porcentagem < 50 ? 'warning' : ''}">${item.disciplina}: ${item.porcentagem}% (${item.aulasPerdidas}/${item.totalAulas})</span>`).join('') :
+                                    '<span>Nenhuma frequência registrada</span>'}
+                            </div>
                         </div>
                     </div>
                 </td>
@@ -78,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Função para calcular o percentual de frequência (reaproveitada do frequencia.js)
+    // Função para calcular o percentual de frequência geral (reaproveitada do frequencia.js)
     function calcPercentual(aluno) {
         const registros = Object.values(aluno.presencas);
         if (registros.length === 0) return 0;
@@ -98,13 +121,107 @@ document.addEventListener('DOMContentLoaded', () => {
         ).length;
     }
 
-    // Função para obter as disciplinas afetadas por faltas e saídas
+    // Função para calcular a frequência por disciplina
+    async function calcularFrequenciaPorDisciplina(aluno, turma) {
+        // 1. Contar o total de aulas por disciplina em uma semana típica
+        const totalAulasPorDisciplinaSemanal = {};
+        for (const dia of diasDaSemana) {
+            const aulasDoDia = await carregarAulasDoDia(dia, turma);
+            aulasDoDia.forEach(aula => {
+                if (!disciplinasExcluidas.includes(aula.subject)) {
+                    totalAulasPorDisciplinaSemanal[aula.subject] = (totalAulasPorDisciplinaSemanal[aula.subject] || 0) + 1;
+                }
+            });
+        }
+
+        // Multiplicar o total semanal pelo número de semanas no mês
+        const totalAulasPorDisciplina = {};
+        for (const [disciplina, totalSemanal] of Object.entries(totalAulasPorDisciplinaSemanal)) {
+            if (!disciplinasExcluidas.includes(disciplina)) {
+                totalAulasPorDisciplina[disciplina] = totalSemanal * SEMANAS_NO_MES;
+            }
+        }
+
+        // 2. Contar as aulas perdidas por disciplina (faltas e saídas), apenas no mês analisado
+        const aulasPerdidasPorDisciplina = {};
+        const diasDeFalta = Object.entries(aluno.presencas)
+            .filter(([data, status]) => status === 'falta' && data.startsWith(MES_ANALISADO))
+            .map(([data, _]) => data)
+            .sort();
+
+        const saídasDoAluno = registrosDeSaida
+            .filter(registro => 
+                registro.alunoNome === aluno.nome && 
+                registro.sala === turma && 
+                registro.dataSaida.startsWith(MES_ANALISADO)
+            )
+            .sort((a, b) => new Date(a.dataSaida).getTime() - new Date(b.dataSaida).getTime());
+
+        // Criar um conjunto de dias com aulas já contadas como perdidas
+        const diasContados = new Set();
+
+        // Faltas (prioridade sobre saídas)
+        for (const data of diasDeFalta) {
+            const diaDaSemana = obterDiaDaSemanaParaCSV(data);
+            if (diaDaSemana === 'saturday' || diaDaSemana === 'sunday') continue;
+
+            diasContados.add(data); // Marcar o dia como contado
+
+            const aulasDoDia = await carregarAulasDoDia(diaDaSemana, turma);
+            const aulasFiltradas = aulasDoDia.filter(aula => !disciplinasExcluidas.includes(aula.subject));
+            aulasFiltradas.forEach(aula => {
+                aulasPerdidasPorDisciplina[aula.subject] = (aulasPerdidasPorDisciplina[aula.subject] || 0) + 1;
+            });
+        }
+
+        // Saídas (apenas para dias que não foram contados como falta)
+        for (const saída of saídasDoAluno) {
+            const data = saída.dataSaida;
+            if (diasContados.has(data)) continue; // Pular dias que já foram contados como falta
+
+            const diaDaSemana = obterDiaDaSemanaParaCSV(data);
+            if (diaDaSemana === 'saturday' || diaDaSemana === 'sunday') continue;
+
+            const horarioSaidaEmMinutos = converterHoraParaMinutos(saída.horarioSaida);
+            const aulasPerdidas = await carregarAulasDoDia(diaDaSemana, turma);
+            const aulasFiltradas = aulasPerdidas
+                .filter(aula => {
+                    const inicioAulaEmMinutos = converterHoraParaMinutos(aula.time_start);
+                    return !disciplinasExcluidas.includes(aula.subject) && inicioAulaEmMinutos >= horarioSaidaEmMinutos;
+                });
+
+            aulasFiltradas.forEach(aula => {
+                aulasPerdidasPorDisciplina[aula.subject] = (aulasPerdidasPorDisciplina[aula.subject] || 0) + 1;
+            });
+        }
+
+        // 3. Calcular a frequência por disciplina, excluindo disciplinas indesejadas
+        const frequenciaPorDisciplina = [];
+        for (const [disciplina, totalAulas] of Object.entries(totalAulasPorDisciplina)) {
+            if (disciplinasExcluidas.includes(disciplina)) continue; // Pular disciplinas excluídas
+            const aulasPerdidas = Math.min(aulasPerdidasPorDisciplina[disciplina] || 0, totalAulas); // Garantir que não exceda o total
+            const aulasPresentes = totalAulas - aulasPerdidas;
+            const porcentagem = totalAulas > 0 ? ((aulasPresentes / totalAulas) * 100).toFixed(1) : 0;
+            frequenciaPorDisciplina.push({
+                disciplina,
+                porcentagem,
+                aulasPerdidas,
+                totalAulas
+            });
+        }
+
+        // Ordenar por porcentagem (menor para maior) para destacar as disciplinas mais críticas
+        return frequenciaPorDisciplina.sort((a, b) => a.porcentagem - b.porcentagem);
+    }
+
+    // Função para obter as disciplinas afetadas por faltas e saídas, separando em duas listas
     async function obterDisciplinasAfetadas(aluno, turma) {
-        const disciplinasAfetadas = [];
+        const faltas = [];
+        const saidas = [];
 
         // 1. Disciplinas perdidas por faltas
         const diasDeFalta = Object.entries(aluno.presencas)
-            .filter(([_, status]) => status === 'falta')
+            .filter(([data, status]) => status === 'falta' && data.startsWith(MES_ANALISADO))
             .map(([data, _]) => data)
             .sort();
 
@@ -122,51 +239,69 @@ document.addEventListener('DOMContentLoaded', () => {
                     const professor = disciplinasSemProfessor.includes(aula.subject) ? '' : aula.teacher;
                     return `${aula.subject} / ${professor}`;
                 }).filter(texto => {
-                    // Garante que disciplinas excluídas não apareçam no texto final
                     return !disciplinasExcluidas.some(excluida => texto.toUpperCase().startsWith(excluida + ' /'));
                 }).join(', ');
 
                 if (disciplinasTexto) {
-                    disciplinasAfetadas.push(`${textoFalta}${disciplinasTexto}`);
+                    faltas.push(`${textoFalta}${disciplinasTexto}`);
                 }
             }
         }
 
         // 2. Disciplinas perdidas por saídas
         const saídasDoAluno = registrosDeSaida
-            .filter(registro => registro.alunoNome === aluno.nome && registro.sala === turma)
+            .filter(registro => 
+                registro.alunoNome === aluno.nome && 
+                registro.sala === turma && 
+                registro.dataSaida.startsWith(MES_ANALISADO)
+            )
             .sort((a, b) => new Date(a.dataSaida).getTime() - new Date(b.dataSaida).getTime());
 
         for (const saída of saídasDoAluno) {
-            const diaDaSemana = obterDiaDaSemanaParaCSV(saída.dataSaida);
+            const data = saída.dataSaida;
+            const diaDaSemana = obterDiaDaSemanaParaCSV(data);
             if (diaDaSemana === 'saturday' || diaDaSemana === 'sunday') continue;
 
             const horarioSaidaEmMinutos = converterHoraParaMinutos(saída.horarioSaida);
-            const aulasPerdidas = await carregarAulasDoDia(diaDaSemana, turma);
-            const aulasFiltradas = aulasPerdidas
-                .filter(aula => {
-                    const inicioAulaEmMinutos = converterHoraParaMinutos(aula.time_start);
-                    return !disciplinasExcluidas.includes(aula.subject) && inicioAulaEmMinutos >= horarioSaidaEmMinutos;
-                });
+            const aulasDoDia = await carregarAulasDoDia(diaDaSemana, turma);
+
+            // Log para depuração
+            console.log(`Saída de ${aluno.nome} em ${data} às ${saída.horarioSaida} (${horarioSaidaEmMinutos} minutos)`);
+            console.log(`Aulas do dia (${diaDaSemana}):`, aulasDoDia);
+
+            const aulasFiltradas = aulasDoDia.filter(aula => {
+                const inicioAulaEmMinutos = converterHoraParaMinutos(aula.time_start);
+                const fimAulaEmMinutos = converterHoraParaMinutos(aula.time_end);
+
+                // Considerar aula perdida se o horário de saída for menor ou igual ao horário de término da aula
+                const aulaPerdida = !disciplinasExcluidas.includes(aula.subject) &&
+                    horarioSaidaEmMinutos <= fimAulaEmMinutos;
+
+                console.log(`Aula: ${aula.subject}, Início: ${aula.time_start} (${inicioAulaEmMinutos}), Fim: ${aula.time_end} (${fimAulaEmMinutos}), Perdida: ${aulaPerdida}`);
+                return aulaPerdida;
+            });
 
             if (aulasFiltradas.length > 0) {
-                const dataFormatada = converterDataParaFormato(saída.dataSaida);
+                const dataFormatada = converterDataParaFormato(data);
                 const textoSaída = `${dataFormatada} (Saída às ${saída.horarioSaida}): `;
                 const disciplinasTexto = aulasFiltradas.map(aula => {
                     const professor = disciplinasSemProfessor.includes(aula.subject) ? '' : aula.teacher;
                     return `${aula.subject} / ${professor}`;
                 }).filter(texto => {
-                    // Garante que disciplinas excluídas não apareçam no texto final
                     return !disciplinasExcluidas.some(excluida => texto.toUpperCase().startsWith(excluida + ' /'));
                 }).join(', ');
 
                 if (disciplinasTexto) {
-                    disciplinasAfetadas.push(`${textoSaída}${disciplinasTexto}`);
+                    saidas.push(`${textoSaída}${disciplinasTexto}`);
+                } else {
+                    console.log(`Nenhuma disciplina válida encontrada para a saída em ${dataFormatada}`);
                 }
+            } else {
+                console.log(`Nenhuma aula perdida encontrada para a saída em ${converterDataParaFormato(data)}`);
             }
         }
 
-        return disciplinasAfetadas;
+        return { faltas, saidas };
     }
 
     // Função para carregar as aulas de um dia específico para uma turma
@@ -188,7 +323,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     transformHeader: header => header.trim().replace(/^"|"$/g, ""),
                     transform: value => value.trim().replace(/^"|"$/g, ""),
                     complete: results => {
-                        const aulasDoDia = results.data.filter(row => row.class === turma);
+                        // Normalizar "ª" para "º" no nome da turma
+                        const turmaNormalizada = turma.replace('ª', 'º').trim().toUpperCase();
+                        const aulasDoDia = results.data.filter(row => {
+                            const turmaCSV = row.class.replace('ª', 'º').trim().toUpperCase();
+                            return turmaCSV === turmaNormalizada;
+                        });
                         resolve(aulasDoDia);
                     },
                     error: (error) => {
@@ -229,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função para converter hora (HH:MM) para minutos
     function converterHoraParaMinutos(hora) {
-        if (!hora) return null;
+        if (!hora) return 0; // Retornar 0 se a hora for inválida
         const partes = hora.split(':');
         return parseInt(partes[0]) * 60 + parseInt(partes[1]);
     }

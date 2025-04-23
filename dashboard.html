@@ -65,7 +65,7 @@
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
-                    <img src="img/school-logo.png" alt="Logo Escola" width="40">
+                    <img src="img/logo-school.webp" alt="Logo Escola" width="40">
                     <h4 class="mb-0">Sistema Escolar</h4>
                 </div>
                 <button class="btn logout-btn" onclick="logout()">
@@ -88,7 +88,7 @@
     <script>
         // Verificação de login
         const userRole = localStorage.getItem('userRole');
-        if(!userRole) window.location.href = 'index.html';
+        if (!userRole) window.location.href = 'index.html';
 
         // Configuração das aplicações
         const appsConfig = {
@@ -124,6 +124,12 @@
                     url: 'apps/saida-aluno.html',
                     icon: '🚪',
                     color: '#F59E0B'
+                },
+                { 
+                    title: 'Relatório de Alunos',
+                    url: 'apps/relatorio.html',
+                    icon: '📑',
+                    color: '#8B5CF6'
                 }
             ]
         };

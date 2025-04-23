@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let listaAlunosPorTurma = {};
     let registroEditandoTimestamp = null; // Variável para rastrear o registro sendo editado
 
+    const disciplinasExcluidas = ['ALMOÇO', 'CAFÉ', 'LANCHE', 'CAFÉ DA MANHÃ']; // Lista de disciplinas a excluir
+
     async function buscarSeriesUnicas() {
         const diasDaSemana = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
         const series = new Set();
@@ -143,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     horarioSaida,
                     responsavel,
                     transporte,
-                    timestamp: registroEditandoTimestamp // Mantém o timestamp original para edição
+                    timestamp: registroEditandoTimestamp || Date.now() // Usa timestamp existente ou cria novo
                 };
                 if (registroEditandoTimestamp) {
                     await atualizarRegistroSaida(novoRegistro);
@@ -172,16 +174,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Se estiver editando, preenche os campos e desabilita a seleção de aluno/série
         if (registroEditandoTimestamp) {
-            selectSerie.value = registroParaEdicao.sala;
-            selectAlunoLista.value = registroParaEdicao.alunoNome;
-            selectSerie.disabled = true;
-            selectAlunoLista.disabled = true;
-            inputDataSaida.value = registroParaEdicao.dataSaida;
-            inputHoraSaida.value = registroParaEdicao.horarioSaida;
-            inputResponsavel.value = registroParaEdicao.responsavel;
-            inputTransporte.value = registroParaEdicao.transporte || '';
-            modal.querySelector('h3').textContent = 'Editar Registro de Saída';
-            modal.querySelector('#salvar-saida').textContent = 'Salvar Alterações';
+            const registroParaEdicao = (JSON.parse(localStorage.getItem('registrosDeSaida')) || [])
+                .find(registro => registro.timestamp === registroEditandoTimestamp);
+            if (registroParaEdicao) {
+                selectSerie.value = registroParaEdicao.sala;
+                selectAlunoLista.value = registroParaEdicao.alunoNome;
+                selectSerie.disabled = true;
+                selectAlunoLista.disabled = true;
+                inputDataSaida.value = registroParaEdicao.dataSaida;
+                inputHoraSaida.value = registroParaEdicao.horarioSaida;
+                inputResponsavel.value = registroParaEdicao.responsavel;
+                inputTransporte.value = registroParaEdicao.transporte || '';
+                modal.querySelector('h3').textContent = 'Editar Registro de Saída';
+                modal.querySelector('#salvar-saida').textContent = 'Salvar Alterações';
+            }
         }
     }
 
@@ -211,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const diaFormatado = String(data.getDate()).padStart(2, '0');
         const mesFormatado = String(data.getMonth() + 1).padStart(2, '0');
         const anoFormatado = data.getFullYear();
-        return `<span class="math-inline">\{diaFormatado\}/</span>{mesFormatado}/${anoFormatado}`;
+        return `${diaFormatado}/${mesFormatado}/${anoFormatado}`;
     }
 
     async function obterAulasPerdidas(alunoNome, salaDoAluno, dataSaidaISO, horarioSaida) {
@@ -219,20 +225,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const horarioSaidaEmMinutos = converterHoraParaMinutos(horarioSaida);
         const aulasPerdidas = [];
 
+        console.log(`[DEBUG] Aluno: ${alunoNome}, Sala: ${salaDoAluno}, Data: ${dataSaidaISO}, Horário de Saída: ${horarioSaida} (${horarioSaidaEmMinutos} minutos), Dia: ${diaDaSemanaCSV}`);
+
         if (diaDaSemanaCSV === 'saturday' || diaDaSemanaCSV === 'sunday') {
+            console.log(`[DEBUG] Dia da semana é ${diaDaSemanaCSV}, retornando vazio.`);
             return [];
         }
 
         if (salaDoAluno && diaDaSemanaCSV) {
             const nomeArquivoCSV = `/data/${diaDaSemanaCSV}.csv`;
+            console.log(`[DEBUG] Tentando carregar arquivo: ${nomeArquivoCSV}`);
 
             try {
                 const response = await fetch(nomeArquivoCSV);
                 if (!response.ok) {
-                    console.error(`Erro ao carregar o arquivo de horário: ${nomeArquivoCSV}`);
+                    console.error(`[ERROR] Erro ao carregar o arquivo de horário: ${nomeArquivoCSV}, status: ${response.status}`);
                     return [];
                 }
                 const csv = await response.text();
+                console.log(`[DEBUG] Arquivo ${nomeArquivoCSV} carregado com sucesso, conteúdo: ${csv.substring(0, 100)}...`);
 
                 return new Promise((resolve, reject) => {
                     Papa.parse(csv, {
@@ -241,22 +252,44 @@ document.addEventListener('DOMContentLoaded', () => {
                         transformHeader: header => header.trim().replace(/^"|"$/g, ""),
                         transform: value => value.trim().replace(/^"|"$/g, ""),
                         complete: results => {
-                            const aulasDoDia = results.data.filter(row => row.class === salaDoAluno);
+                            if (!results.data || results.data.length === 0) {
+                                console.error(`[ERROR] Nenhum dado encontrado no arquivo ${nomeArquivoCSV}.`);
+                                resolve([]);
+                                return;
+                            }
+
+                            // Normalizar "ª" para "º" no nome da turma
+                            const aulasDoDia = results.data.filter(row => {
+                                const turmaCSV = row.class.replace('ª', 'º').trim().toUpperCase();
+                                const turmaEsperada = salaDoAluno.replace('ª', 'º').trim().toUpperCase();
+                                return turmaCSV === turmaEsperada;
+                            });
+
+                            if (aulasDoDia.length === 0) {
+                                console.error(`[ERROR] Nenhuma aula encontrada para a turma ${salaDoAluno} em ${nomeArquivoCSV}. Verifique o nome da turma no CSV.`);
+                            }
+                            console.log(`[DEBUG] Aulas encontradas para ${salaDoAluno}:`, aulasDoDia);
+
                             const aulasPerdidasFiltradas = aulasDoDia.filter(aula => {
                                 const inicioAulaEmMinutos = converterHoraParaMinutos(aula.time_start);
-                                return inicioAulaEmMinutos >= horarioSaidaEmMinutos;
+                                const aulaPerdida = inicioAulaEmMinutos >= horarioSaidaEmMinutos &&
+                                                    !disciplinasExcluidas.includes(aula.subject.toUpperCase());
+                                console.log(`[DEBUG] Aula: ${aula.subject} (${aula.time_start}-${aula.time_end}), Início: ${inicioAulaEmMinutos} minutos, Perdida: ${aulaPerdida}`);
+                                return aulaPerdida;
                             });
-                            resolve(aulasPerdidasFiltradas.map(aula => `<span class="math-inline">\{aula\.subject\} \(</span>{aula.time_start}-${aula.time_end})`));
+
+                            console.log(`[DEBUG] Aulas perdidas filtradas:`, aulasPerdidasFiltradas);
+                            resolve(aulasPerdidasFiltradas.map(aula => `${aula.subject} (${aula.time_start}-${aula.time_end})`));
                         },
                         error: (error) => {
-                            console.error("Erro ao fazer o parse do CSV:", error);
+                            console.error("[ERROR] Erro ao fazer o parse do CSV:", error);
                             reject([]);
                         }
                     });
                 });
 
             } catch (error) {
-                console.error("Erro ao buscar o arquivo CSV:", error);
+                console.error("[ERROR] Erro ao buscar o arquivo CSV:", error);
                 return [];
             }
         }
@@ -274,8 +307,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function converterHoraParaMinutos(hora) {
-        if (!hora) return null;
+        if (!hora) return 0;
         const partes = hora.split(':');
+        // Suporta tanto "HH:MM" quanto "HH:MM:SS"
         return parseInt(partes[0]) * 60 + parseInt(partes[1]);
     }
 
@@ -284,16 +318,6 @@ document.addEventListener('DOMContentLoaded', () => {
         registrosDeSaida = registrosDeSaida.filter(registro => registro.timestamp !== timestamp);
         localStorage.setItem('registrosDeSaida', JSON.stringify(registrosDeSaida));
         await carregarExibirRegistrosSaida();
-    }
-
-    function marcarRegistroEnviado(timestamp, sala) {
-        let registrosDeSaida = JSON.parse(localStorage.getItem('registrosDeSaida')) || [];
-        const registroIndex = registrosDeSaida.findIndex(registro => registro.timestamp === timestamp);
-        if (registroIndex !== -1) {
-            registrosDeSaida[registroIndex].enviado = true;
-            localStorage.setItem('registrosDeSaida', JSON.stringify(registrosDeSaida));
-            carregarExibirRegistrosSaida(); // Recarrega a lista principal
-        }
     }
 
     async function carregarExibirRegistrosSaida() {
@@ -378,196 +402,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const timestamp = parseFloat(this.dataset.timestamp);
                 const registroParaEditar = registrosDeSaida.find(registro => registro.timestamp === timestamp);
                 if (registroParaEditar) {
-                    abrirModalEditarRegistro(registroParaEditar);
+                    registroEditandoTimestamp = timestamp;
+                    abrirModalNovoRegistro();
                 }
             });
         });
-    }
-
-    async function abrirModalEditarRegistro(registroParaEditar) {
-        const seriesUnicas = await buscarSeriesUnicas();
-
-        const modal = document.createElement('div');
-        modal.classList.add('modal-registro');
-        modal.innerHTML = `
-            <h3>Editar Registro de Saída</h3>
-            <label for="serie">Série:</label>
-            <select id="serie">
-                <option value="">Selecione a Série</option>
-                ${seriesUnicas.map(serie => `<option value="${serie}" ${serie === registroParaEditar.sala ? 'selected' : ''}>${serie}</option>`).join('')}
-            </select>
-            <label for="aluno">Aluno:</label>
-            <select id="aluno-lista" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 1rem; color: #2d3748; box-sizing: border-box;">
-                <option value="${registroParaEditar.alunoNome}">${registroParaEditar.alunoNome}</option>
-            </select>
-            <label for="data">Data da Saída:</label>
-            <input type="date" id="data" value="${registroParaEditar.dataSaida}" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 1rem; color: #2d3748; box-sizing: border-box;">
-            <label for="hora">Horário de Saída:</label>
-            <input type="time" id="hora" value="${registroParaEditar.horarioSaida}" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 1rem; color: #2d3748; box-sizing: border-box;">
-            <label for="responsavel">Responsável:</label>
-            <input type="text" id="responsavel" value="${registroParaEditar.responsavel}" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 1rem; color: #2d3748; box-sizing: border-box;">
-            <label for="transporte">Transporte:</label>
-            <input type="text" id="transporte" placeholder="Se aplicável" value="${registroParaEditar.transporte || ''}" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 1rem; color: #2d3748; box-sizing: border-box;">
-            <button id="salvar-saida">Salvar Alterações</button>
-            <button id="cancelar-saida">Cancelar</button>
-        `;
-        document.body.appendChild(modal);
-
-        registroEditandoTimestamp = registroParaEditar.timestamp; // Define o timestamp para edição
-
-        const selectSerie = modal.querySelector('#serie');
-        const selectAlunoLista = modal.querySelector('#aluno-lista');
-        const btnSalvarSaida = modal.querySelector('#salvar-saida');
-        const btnCancelarSaida = modal.querySelector('#cancelar-saida');
-        const inputDataSaida = modal.querySelector('#data');
-        const inputHoraSaida = modal.querySelector('#hora');
-        const inputResponsavel = modal.querySelector('#responsavel');
-        const inputTransporte = modal.querySelector('#transporte');
-
-        // Desabilita a seleção de aluno/série na edição
-        selectSerie.disabled = true;
-        selectAlunoLista.disabled = true;
-
-        btnSalvarSaida.addEventListener('click', async () => {
-            const alunoNome = selectAlunoLista.value;
-            const serieSelecionada = selectSerie.value;
-            const dataSaidaISO = inputDataSaida.value;
-            const horarioSaida = inputHoraSaida.value;
-            const responsavel = inputResponsavel.value;
-            const transporte = inputTransporte.value;
-
-            if (alunoNome && serieSelecionada && dataSaidaISO && horarioSaida && responsavel) {
-                const dataSaidaLocal = new Date(dataSaidaISO + 'T' + horarioSaida + ':00');
-                const registroAtualizado = {
-                    alunoNome,
-                    sala: serieSelecionada,
-                    dataSaida: dataSaidaLocal.toISOString().split('T')[0],
-                    horarioSaida,
-                    responsavel,
-                    transporte,
-                    timestamp: registroEditandoTimestamp
-                };
-                await atualizarRegistroSaida(registroAtualizado);
-                document.body.removeChild(modal);
-                const overlay = document.querySelector('.modal-overlay');
-                if (overlay) document.body.removeChild(overlay);
-                registroEditandoTimestamp = null;
-            } else {
-                alert('Por favor, preencha todos os campos obrigatórios.');
-            }
-        });
-
-        btnCancelarSaida.addEventListener('click', () => {
-            document.body.removeChild(modal);
-            const overlay = document.querySelector('.modal-overlay');
-            if (overlay) document.body.removeChild(overlay);
-            registroEditandoTimestamp = null;
-        });
-
-        const overlay = document.createElement('div');
-        overlay.classList.add('modal-overlay');
-        document.body.appendChild(overlay);
-    }
-
-    async function salvarRegistroSaida(registro) {
-        let registrosDeSaida = JSON.parse(localStorage.getItem('registrosDeSaida')) || [];
-        registrosDeSaida.push(registro);
-        localStorage.setItem('registrosDeSaida', JSON.stringify(registrosDeSaida));
-        await carregarExibirRegistrosSaida();
-    }
-
-    async function atualizarRegistroSaida(registroAtualizado) {
-        let registrosDeSaida = JSON.parse(localStorage.getItem('registrosDeSaida')) || [];
-        const index = registrosDeSaida.findIndex(registro => registro.timestamp === registroAtualizado.timestamp);
-        if (index !== -1) {
-            registrosDeSaida[index] = registroAtualizado;
-            localStorage.setItem('registrosDeSaida', JSON.stringify(registrosDeSaida));
-            await carregarExibirRegistrosSaida();
-        }
-    }
-
-    function converterDataParaFormato(dataISO) {
-        const partes = dataISO.split('-');
-        const ano = parseInt(partes[0]);
-        const mes = parseInt(partes[1]) - 1;
-        const dia = parseInt(partes[2]);
-        const data = new Date(ano, mes, dia);
-        const diaFormatado = String(data.getDate()).padStart(2, '0');
-        const mesFormatado = String(data.getMonth() + 1).padStart(2, '0');
-        const anoFormatado = data.getFullYear();
-        return `${diaFormatado}/${mesFormatado}/${anoFormatado}`;
-    }
-
-    async function obterAulasPerdidas(alunoNome, salaDoAluno, dataSaidaISO, horarioSaida) {
-        const diaDaSemanaCSV = obterDiaDaSemanaParaCSV(dataSaidaISO);
-        const horarioSaidaEmMinutos = converterHoraParaMinutos(horarioSaida);
-        const aulasPerdidas = [];
-
-        if (diaDaSemanaCSV === 'saturday' || diaDaSemanaCSV === 'sunday') {
-            return [];
-        }
-
-        if (salaDoAluno && diaDaSemanaCSV) {
-            const nomeArquivoCSV = `/data/${diaDaSemanaCSV}.csv`;
-
-            try {
-                const response = await fetch(nomeArquivoCSV);
-                if (!response.ok) {
-                    console.error(`Erro ao carregar o arquivo de horário: ${nomeArquivoCSV}`);
-                    return [];
-                }
-                const csv = await response.text();
-
-                return new Promise((resolve, reject) => {
-                    Papa.parse(csv, {
-                        header: true,
-                        skipEmptyLines: true,
-                        transformHeader: header => header.trim().replace(/^"|"$/g, ""),
-                        transform: value => value.trim().replace(/^"|"$/g, ""),
-                        complete: results => {
-                            const aulasDoDia = results.data.filter(row => row.class === salaDoAluno);
-                            const aulasPerdidasFiltradas = aulasDoDia.filter(aula => {
-                                const inicioAulaEmMinutos = converterHoraParaMinutos(aula.time_start);
-                                return inicioAulaEmMinutos >= horarioSaidaEmMinutos;
-                            });
-                            resolve(aulasPerdidasFiltradas.map(aula => `${aula.subject} (${aula.time_start}-${aula.time_end})`));
-                        },
-                        error: (error) => {
-                            console.error("Erro ao fazer o parse do CSV:", error);
-                            reject([]);
-                        }
-                    });
-                });
-
-            } catch (error) {
-                console.error("Erro ao buscar o arquivo CSV:", error);
-                return [];
-            }
-        }
-        return aulasPerdidas;
-    }
-
-    function obterDiaDaSemanaParaCSV(dataISO) {
-        const partes = dataISO.split('-');
-        const ano = parseInt(partes[0]);
-        const mes = parseInt(partes[1]) - 1;
-        const dia = parseInt(partes[2]);
-        const dataObj = new Date(ano, mes, dia);
-        const dias = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-        return dias[dataObj.getDay()];
-    }
-
-    function converterHoraParaMinutos(hora) {
-        if (!hora) return null;
-        const partes = hora.split(':');
-        return parseInt(partes[0]) * 60 + parseInt(partes[1]);
-    }
-
-    async function deletarRegistroSaida(timestamp) {
-        let registrosDeSaida = JSON.parse(localStorage.getItem('registrosDeSaida')) || [];
-        registrosDeSaida = registrosDeSaida.filter(registro => registro.timestamp !== timestamp);
-        localStorage.setItem('registrosDeSaida', JSON.stringify(registrosDeSaida));
-        await carregarExibirRegistrosSaida();
     }
 
     // Inicialização

@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -69,6 +68,11 @@ app.get('/dashboard.html', (req, res) => {
 
 app.get('/apps/:filename', (req, res) => {
   res.sendFile(path.join(__dirname, 'apps', req.params.filename));
+});
+
+// ✅ Nova rota para servir o relatório
+app.get('/apps/relatorio.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'apps', 'relatorio.html'));
 });
 
 // Rota padrão para SPA

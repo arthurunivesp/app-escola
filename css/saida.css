@@ -10,7 +10,7 @@
 .saida-search {
     display: flex;
     gap: 1rem;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1rem; /* Espaçamento adicional entre os elementos */
 }
 
 .saida-input {
@@ -209,6 +209,16 @@
 
     .saida-info {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .saida-container {
+        padding: 0.5rem;
+    }
+    .saida-btn-registro {
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
     }
 }
 

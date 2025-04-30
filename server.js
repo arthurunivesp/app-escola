@@ -6,6 +6,12 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware para logar todas as requisições
+app.use((req, res, next) => {
+    console.log(`[REQUEST] ${req.method} ${req.url}`);
+    next();
+});
+
 // =============== CONFIGURAÇÕES ===============
 app.use(cors({
   origin: '*',
@@ -14,7 +20,16 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname)));
+
+// Servir arquivos estáticos (deve vir antes das rotas específicas)
+app.use(express.static(path.join(__dirname), {
+    // Garantir que os arquivos sejam servidos com o tipo MIME correto
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.webp')) {
+            res.setHeader('Content-Type', 'image/webp');
+        }
+    }
+}));
 
 // =============== ROTAS DA API ===============
 
@@ -55,14 +70,13 @@ app.get('/data/:filename', (req, res) => {
 
     res.sendFile(filePath);
     console.log(`[CSV] Arquivo ${filename} servido`);
-
   } catch (error) {
     console.error(`[ERRO CSV] ${error.message}`);
     res.status(404).send(error.message);
   }
 });
 
-// Rota padrão para SPA
+// Rota padrão para SPA (deve vir depois das rotas específicas e do express.static)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });

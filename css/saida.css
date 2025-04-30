@@ -1,7 +1,7 @@
 .saida-container {
     max-width: 1200px;
-    margin: 2rem auto;
-    padding: 2rem;
+    margin: 1rem auto; /* Menos margem */
+    padding: 1rem; /* Ajusta para telas menores */
     background: #f8fafc;
     border-radius: 15px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -28,6 +28,7 @@
 }
 
 .saida-btn-registro {
+    margin-top: 1rem;
     background: #3b82f6;
     color: white;
     padding: 0.8rem 2rem;
@@ -198,10 +199,12 @@
 @media (max-width: 768px) {
     .saida-search {
         flex-direction: column;
+        align-items: center; /* Alinha ao centro no celular */
     }
 
     .saida-btn-registro {
         width: 100%;
+        font-size: 0.9rem; /* Ajusta a fonte para telas menores */
     }
 
     .saida-info {

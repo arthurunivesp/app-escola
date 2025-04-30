@@ -85,77 +85,73 @@
         </div>
     </main>
 
+    <script src="/js/auth.js"></script>
     <script>
         // Verificação de login
-        const userRole = localStorage.getItem('userRole');
-        if (!userRole) window.location.href = 'index.html';
+        document.addEventListener('DOMContentLoaded', () => {
+            const userRole = checkAuth();
+            const container = document.getElementById('appsContainer');
+            document.getElementById('userRole').textContent = userRole === 'admin' ? 'Administrador' : 'Professor';
 
-        // Configuração das aplicações
-        const appsConfig = {
-            teacher: [
-                { 
-                    title: 'Horários', 
-                    url: 'apps/planilha-horario.html',
-                    icon: '📅',
-                    color: '#3B82F6'
-                },
-                {
-                    title: 'Frequência',
-                    url: 'apps/frequencia-aluno.html',
-                    icon: '✅',
-                    color: '#10B981'
-                }
-            ],
-            admin: [
-                { 
-                    title: 'Gestão de Horários', 
-                    url: 'apps/planilha-horario.html',
-                    icon: '📅',
-                    color: '#3B82F6'
-                },
-                { 
-                    title: 'Controle de Frequência',
-                    url: 'apps/frequencia-aluno.html',
-                    icon: '📊',
-                    color: '#10B981'
-                },
-                { 
-                    title: 'Registro de Saídas',
-                    url: 'apps/saida-aluno.html',
-                    icon: '🚪',
-                    color: '#F59E0B'
-                },
-                { 
-                    title: 'Relatório de Alunos',
-                    url: 'apps/relatorio.html',
-                    icon: '📑',
-                    color: '#8B5CF6'
-                }
-            ]
-        };
+            // Configuração das aplicações
+            const appsConfig = {
+                teacher: [
+                    { 
+                        title: 'Horários', 
+                        url: 'apps/planilha-horario.html',
+                        icon: '📅',
+                        color: '#3B82F6'
+                    },
+                    {
+                        title: 'Frequência',
+                        url: 'apps/frequencia-aluno.html',
+                        icon: '✅',
+                        color: '#10B981'
+                    }
+                ],
+                admin: [
+                    { 
+                        title: 'Gestão de Horários', 
+                        url: 'apps/planilha-horario.html',
+                        icon: '📅',
+                        color: '#3B82F6'
+                    },
+                    { 
+                        title: 'Controle de Frequência',
+                        url: 'apps/frequencia-aluno.html',
+                        icon: '📊',
+                        color: '#10B981'
+                    },
+                    { 
+                        title: 'Registro de Saídas',
+                        url: 'apps/saida-aluno.html',
+                        icon: '🚪',
+                        color: '#F59E0B'
+                    },
+                    { 
+                        title: 'Relatório de Alunos',
+                        url: 'apps/relatorio.html',
+                        icon: '📑',
+                        color: '#8B5CF6'
+                    }
+                ]
+            };
 
-        // Gerar cards
-        const container = document.getElementById('appsContainer');
-        document.getElementById('userRole').textContent = userRole === 'admin' ? 'Administrador' : 'Professor';
-        
-        appsConfig[userRole].forEach(app => {
-            const card = document.createElement('div');
-            card.className = 'col-md-4';
-            card.innerHTML = `
-                <a href="${app.url}" class="card app-card text-decoration-none" style="background: ${app.color}">
-                    <div class="card-body text-center">
-                        <div class="app-icon">${app.icon}</div>
-                        <h5 class="card-title">${app.title}</h5>
-                    </div>
-                </a>
-            `;
-            container.appendChild(card);
+            // Gerar cards
+            appsConfig[userRole].forEach(app => {
+                const card = document.createElement('div');
+                card.className = 'col-md-4';
+                card.innerHTML = `
+                    <a href="${app.url}" class="card app-card text-decoration-none" style="background: ${app.color}">
+                        <div class="card-body text-center">
+                            <div class="app-icon">${app.icon}</div>
+                            <h5 class="card-title">${app.title}</h5>
+                        </div>
+                    </a>
+                `;
+                container.appendChild(card);
+            });
         });
-
-        function logout() {
-            localStorage.removeItem('userRole');
-            window.location.href = 'index.html';
-        }
     </script>
 </body>
 </html>

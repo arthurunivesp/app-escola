@@ -1,6 +1,8 @@
+require('dotenv').config();
 const cors = require('cors');
 const express = require('express');
 const serverless = require('serverless-http');
+require('dotenv').config(); // Para usar variáveis de ambiente
 
 const app = express();
 
@@ -16,25 +18,40 @@ app.use(express.urlencoded({ extended: true }));
 app.post('/api/login', (req, res) => {
   console.log('[API] Requisição recebida em /api/login');
   const { username, password } = req.body;
+
+  // Usuários válidos utilizando variáveis de ambiente
   const validUsers = {
-    admin: { password: 'admin123', role: 'admin' },
-    teacher: { password: 'teacher123', role: 'teacher' }
+    admin: { password: process.env.ADMIN_PASSWORD, role: 'admin' },
+    teacher: { password: process.env.TEACHER_PASSWORD, role: 'teacher' }
   };
+
+  if (!username || !password) {
+    console.log('[LOGIN] Dados insuficientes fornecidos');
+    return res.status(400).json({
+      success: false,
+      message: 'Por favor, forneça nome de usuário e senha.'
+    });
+  }
 
   if (validUsers[username] && validUsers[username].password === password) {
     console.log(`[LOGIN] ${username} autenticado como ${validUsers[username].role}`);
-    res.json({
+    return res.json({
       success: true,
       role: validUsers[username].role,
       redirect: '/dashboard.html'
     });
   } else {
     console.log(`[LOGIN] Tentativa falha: ${username}`);
-    res.status(401).json({
+    return res.status(401).json({
       success: false,
-      message: 'Usuário ou senha inválidos'
+      message: 'Usuário ou senha inválidos.'
     });
   }
+});
+
+// Middleware para rotas não encontradas
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'Rota não encontrada' });
 });
 
 // Exportar como função serverless

@@ -21,7 +21,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         
         if (data.success) {
             localStorage.setItem('userRole', data.role);
-            window.location.href = '/dashboard.html';
+            window.location.replace('/dashboard.html'); // Usar replace para evitar histórico
         } else {
             alert(data.message || 'Erro no login!');
         }
@@ -29,5 +29,5 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         console.error('Erro ao fazer login:', error);
         alert(`Falha na conexão com o servidor: ${error.message}`);
     }
-  });
+});
 

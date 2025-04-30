@@ -4,14 +4,15 @@ const serverless = require('serverless-http');
 
 const app = express();
 
+// Configurações
 app.use(cors({
   origin: '*',
   credentials: true
 }));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Rota de Login
 app.post('/api/login', (req, res) => {
   console.log('[API] Requisição recebida em /api/login');
   const { username, password } = req.body;
@@ -36,4 +37,5 @@ app.post('/api/login', (req, res) => {
   }
 });
 
+// Exportar como função serverless
 module.exports.handler = serverless(app);

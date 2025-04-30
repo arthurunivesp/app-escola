@@ -8,12 +8,36 @@
       {
         "src": "index.html",
         "use": "@vercel/static"
+      },
+      {
+        "src": "css/**/*",
+        "use": "@vercel/static"
+      },
+      {
+        "src": "js/**/*",
+        "use": "@vercel/static"
+      },
+      {
+        "src": "img/**/*",
+        "use": "@vercel/static"
       }
     ],
     "routes": [
       {
         "src": "/api/(.*)",
         "dest": "/api"
+      },
+      {
+        "src": "/css/(.*)",
+        "dest": "/css/$1"
+      },
+      {
+        "src": "/js/(.*)",
+        "dest": "/js/$1"
+      },
+      {
+        "src": "/img/(.*)",
+        "dest": "/img/$1"
       },
       {
         "src": "/(.*)",

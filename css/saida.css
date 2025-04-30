@@ -124,8 +124,8 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 90%; /* Amplo no celular */
-    max-width: 400px; /* Largura máxima para telas maiores */
+    width: 95%; /* Ocupa quase toda a largura no celular */
+    max-width: 400px; /* Largura máxima */
     background: white;
     padding: 2rem;
     box-shadow: 0 8px 12px rgba(0,0,0,0.15);
@@ -133,7 +133,7 @@
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Centraliza os botões no modal */
+    align-items: center; /* Centraliza os botões */
 }
 
 .modal-registro h3 {
@@ -164,24 +164,35 @@
 }
 
 .modal-registro button {
-    background: #48bb78;
-    color: white;
-    padding: 0.8rem 1.5rem;
+    width: 100%; /* Botões ocupam 100% da largura */
+    padding: 1rem; /* Garantir clique confortável */
+    margin-bottom: 1rem; /* Espaçamento entre os botões */
     border: none;
     border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem; /* Fonte maior para destacar */
     cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
-    margin: 0.5rem 0; /* Espaçamento entre botões */
-    width: 100%; /* Garante largura total no celular */
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.modal-registro button#salvar-saida {
+    background: #48bb78; /* Verde para o botão Salvar */
+    color: white;
+}
+
+.modal-registro button#salvar-saida:hover {
+    background: #38a169; /* Efeito hover */
+    transform: scale(1.02); /* Leve aumento */
 }
 
 .modal-registro button#cancelar-saida {
-    background: #e53e3e;
+    background: #e53e3e; /* Vermelho para Cancelar */
+    color: white;
 }
 
-.modal-registro button:hover {
-    opacity: 0.9;
+.modal-registro button#cancelar-saida:hover {
+    background: #c53030;
+    transform: scale(1.02);
 }
 
 /* Overlay para o modal */
@@ -214,7 +225,11 @@
 
     .modal-registro {
         padding: 1.5rem;
-        width: 95%;
+        width: 90%;
+    }
+
+    .modal-registro button {
+        font-size: 0.9rem;
     }
 }
 

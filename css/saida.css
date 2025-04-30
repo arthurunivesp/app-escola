@@ -10,7 +10,7 @@
 .saida-search {
     display: flex;
     gap: 1rem;
-    margin-bottom: 1rem; /* Espaçamento adicional entre os elementos */
+    margin-bottom: 2.5rem;
 }
 
 .saida-input {
@@ -124,13 +124,16 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    width: 90%; /* Amplo no celular */
+    max-width: 400px; /* Largura máxima para telas maiores */
     background: white;
     padding: 2rem;
-    border-radius: 10px;
     box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    border-radius: 10px;
     z-index: 1000;
-    width: 90%;
-    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centraliza os botões no modal */
 }
 
 .modal-registro h3 {
@@ -169,7 +172,8 @@
     cursor: pointer;
     font-weight: 500;
     transition: background-color 0.2s ease;
-    margin-right: 0.5rem;
+    margin: 0.5rem 0; /* Espaçamento entre botões */
+    width: 100%; /* Garante largura total no celular */
 }
 
 .modal-registro button#cancelar-saida {
@@ -178,10 +182,6 @@
 
 .modal-registro button:hover {
     opacity: 0.9;
-}
-
-.modal-registro button:last-child {
-    margin-right: 0;
 }
 
 /* Overlay para o modal */
@@ -199,27 +199,29 @@
 @media (max-width: 768px) {
     .saida-search {
         flex-direction: column;
-        align-items: center; /* Alinha ao centro no celular */
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .saida-btn-registro {
         width: 100%;
-        font-size: 0.9rem; /* Ajusta a fonte para telas menores */
+        font-size: 0.9rem;
     }
 
     .saida-info {
         grid-template-columns: 1fr;
     }
+
+    .modal-registro {
+        padding: 1.5rem;
+        width: 95%;
+    }
 }
 
-@media (max-width: 480px) {
-    .saida-container {
-        padding: 0.5rem;
-    }
-    .saida-btn-registro {
-        font-size: 0.8rem;
-        padding: 0.5rem 1rem;
-    }
+/* Feedback de Interação */
+button:active {
+    transform: scale(0.98);
+    opacity: 0.8;
 }
 
 .saida-acoes button {

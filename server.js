@@ -4,11 +4,11 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // =============== CONFIGURAÇÕES ===============
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: '*', // Permitir todas as origens (ou especifique o domínio do Vercel)
   credentials: true
 }));
 
@@ -61,21 +61,7 @@ app.get('/data/:filename', (req, res) => {
   }
 });
 
-// =============== ROTAS DO FRONTEND ===============
-app.get('/dashboard.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dashboard.html'));
-});
-
-app.get('/apps/:filename', (req, res) => {
-  res.sendFile(path.join(__dirname, 'apps', req.params.filename));
-});
-
-// ✅ Nova rota para servir o relatório
-app.get('/apps/relatorio.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'apps', 'relatorio.html'));
-});
-
-// Rota padrão para SPA
+// Rota padrão para SPA (já que express.static já serve os arquivos)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });

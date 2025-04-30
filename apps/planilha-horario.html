@@ -9,10 +9,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
     <script src="https://unpkg.com/papaparse@latest/papaparse.min.js"></script>
-    <link rel="stylesheet" href="../css/horario-styles.css">
+    <link rel="stylesheet" href="/css/horario-styles.css">
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel" src="../js/horario-script.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        // Verificação de login
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+        });
+    </script>
+    <script type="text/babel" src="/js/horario-script.js"></script>
 </body>
 </html>

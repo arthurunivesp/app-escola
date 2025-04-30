@@ -1,19 +1,12 @@
 const { useState, useEffect } = React;
 
 const App = () => {
-  // Estados gerais
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
 
-  // Tipos de busca:
-  // 'class'   → Por Turma e Intervalo
-  // 'teacher' → Por Professor (dia e nome, sem horário)
-  // 'current' → Aula Atual na Turma (usa horário local)
   const [searchType, setSearchType] = useState('class');
-
-  // Campos de busca
   const [timeInput, setTimeInput] = useState('');
   const [endTimeInput, setEndTimeInput] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
@@ -35,7 +28,6 @@ const App = () => {
     '3º SERIE B LGH', '3º SERIE VENDAS'
   ];
 
-  // Converte uma string de horário de "HH:MM" ou "15H50" em minutos totais
   const parseTimeString = (input) => {
     if (!input) return null;
     const normalized = input.replace(/H/gi, ':').trim();
@@ -47,12 +39,8 @@ const App = () => {
     return hours * 60 + minutes;
   };
 
-  // Extrai o nome do professor.
-  // Se o valor contém uma barra ("/" ou "\"), retorna a parte após ela;
-  // remove vírgulas ou pontos finais indesejados.
   const extractTeacherName = (str) => {
     if (!str) return "";
-    // Substitui possíveis barras invertidas por barras normais e remove vírgulas/pontos nos finais.
     let cleaned = str.replace(/[\/\\]/g, "/").replace(/[,;.\s]+$/, "");
     if (cleaned.includes("/")) {
       const parts = cleaned.split("/");
@@ -61,7 +49,6 @@ const App = () => {
     return cleaned.trim();
   };
 
-  // Normaliza uma string: remove acentos, pontuações e espaços extras, e converte para minúsculas.
   const normalizeTeacher = (str) => {
     if (!str) return "";
     return str
@@ -73,14 +60,12 @@ const App = () => {
       .replace(/\s+/g, " ");
   };
 
-  // Preenche automaticamente o campo de horário com o horário local
   useEffect(() => {
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
     setTimeInput(currentTime);
   }, []);
 
-  // Carrega o CSV de acordo com o dia selecionado
   useEffect(() => {
     let dayToLoad = "";
     const now = new Date();
@@ -89,26 +74,29 @@ const App = () => {
     const currentDay = daysArr[currentDayIndex].toLowerCase();
 
     if (searchType === "current") {
-      dayToLoad = currentDayIndex >= 1 && currentDayIndex <= 5 ? currentDay : 'monday'; // Carrega 'monday' para fins de inicialização/evitar erro se for fim de semana na montagem inicial
+      dayToLoad = currentDayIndex >= 1 && currentDayIndex <= 5 ? currentDay : 'monday';
     } else {
       dayToLoad = selectedDay;
     }
+
     const loadCSV = async () => {
       setLoading(true);
       setError("");
       try {
-        const response = await fetch(`/data/${dayToLoad}.csv`, {
+        const csvPath = `/data/${dayToLoad}.csv`;
+        console.log(`Tentando carregar o arquivo: ${csvPath}`);
+        const response = await fetch(csvPath, {
           headers: {
             'Content-Type': 'text/csv'
           }
         });
         if (!response.ok) {
           if (searchType === "current" && (currentDayIndex === 0 || currentDayIndex === 6)) {
-            setData([]); // Define data como vazio para evitar buscas em dias sem arquivo
+            setData([]);
             setLoading(false);
-            return; // Sai da função sem processar erro
+            return;
           }
-          throw new Error("Falha ao carregar o arquivo");
+          throw new Error(`Falha ao carregar o arquivo: ${response.status} ${response.statusText}`);
         }
         const csv = await response.text();
         Papa.parse(csv, {
@@ -117,18 +105,19 @@ const App = () => {
           transformHeader: header => header.trim().replace(/^"|"$/g, ""),
           transform: value => value.trim().replace(/^"|"$/g, ""),
           complete: results => {
+            console.log(`Dados carregados para o dia ${dayToLoad}:`, results.data);
             setData(results.data);
             setLoading(false);
           },
           error: err => {
-            console.error(err);
-            setError("Erro ao carregar os dados do horário.");
+            console.error('Erro ao parsear o CSV:', err);
+            setError("Erro ao processar os dados do horário.");
             setLoading(false);
           }
         });
       } catch (err) {
-        console.error(err);
-        setError("Erro ao carregar os dados do horário.");
+        console.error('Erro ao carregar o CSV:', err);
+        setError(`Erro ao carregar os dados do horário: ${err.message}`);
         setLoading(false);
       }
     };
@@ -190,7 +179,7 @@ const App = () => {
         return;
       }
       const now = new Date();
-      const dayOfWeek = now.getDay(); // 0 (Sunday) to 6 (Saturday)
+      const dayOfWeek = now.getDay();
 
       if (dayOfWeek === 0 || dayOfWeek === 6) {
         setResult({ type: "none", message: "Horário de funcionamento: As aulas têm início às 7h e término às 16h, de segunda a sexta-feira. 🕒." });
@@ -203,7 +192,6 @@ const App = () => {
         return;
       }
 
-      // Filtra os dados CARREGADOS (que devem ser do dia atual)
       const currentEntry = data.find(row => {
         return row["class"] === selectedClass &&
                parseTimeString(row["time_start"]) <= nowMinutes &&

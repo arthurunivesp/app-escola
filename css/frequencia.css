@@ -35,11 +35,14 @@
 
 #calendarContainer {
     display: grid;
-    grid-template-columns: repeat(7, 32px);
+    grid-template-columns: repeat(7, 1fr); /* Ajustado para ocupar o espaço igualmente */
     gap: 2px;
     padding: 0.5rem;
     background: white;
     border-radius: 6px;
+    width: 100%; /* Faz o calendário ocupar toda a largura disponível */
+    max-width: 350px; /* Limita a largura máxima para não ficar muito esticado */
+    margin: 0 auto; /* Centraliza o calendário */
 }
 
 .calendar-weekday {
@@ -64,9 +67,6 @@
 
 .calendar-day.weekend {
     color: #dc2626; /* Vermelho para os números de sábado e domingo */
-    /* Você pode adicionar um background diferente se preferir:
-    background-color: #fdecea;
-    */
 }
 
 .calendar-day.has-data {
@@ -106,8 +106,8 @@
     border-radius: 2px;
     margin-right: 0.5rem;
     cursor: pointer;
-    display: inline-block; /* Para alinhar com o nome */
-    position: relative; /* Para posicionar o sinal de mais dentro */
+    display: inline-block;
+    position: relative;
 }
 
 .expand-indicator::before {
@@ -125,7 +125,7 @@
 }
 
 .freq-aluno-nome {
-    cursor: pointer; /* Manter o cursor de clique no nome também */
+    cursor: pointer;
     font-size: 0.9rem;
     color: #1e293b;
 }
@@ -212,7 +212,7 @@
     color: #1e293b;
     cursor: pointer;
     margin-left: 0.5rem;
-    flex-grow: 1; /* Para o nome ocupar mais espaço */
+    flex-grow: 1;
 }
 
 .percentual-resumo {
@@ -341,13 +341,13 @@
     }
 
     .situacao-normal {
-        color: #10b981; /* Verde para situação normal */
+        color: #10b981;
         font-weight: bold;
         margin-left: 0.5rem;
     }
     
     .situacao-alerta {
-        color: #ef4444; /* Vermelho para alerta de faltas */
+        color: #ef4444;
         font-weight: bold;
         margin-left: 0.5rem;
     }

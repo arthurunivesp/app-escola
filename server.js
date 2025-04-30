@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 // =============== CONFIGURAÇÕES ===============
 app.use(cors({
-  origin: '*', // Permitir todas as origens (ou especifique o domínio do Vercel)
+  origin: '*',
   credentials: true
 }));
 
@@ -20,6 +20,7 @@ app.use(express.static(path.join(__dirname)));
 
 // Rota de Login
 app.post('/api/login', (req, res) => {
+  console.log('[API] Requisição recebida em /api/login');
   const { username, password } = req.body;
   const validUsers = {
     admin: { password: 'admin123', role: 'admin' },
@@ -61,7 +62,7 @@ app.get('/data/:filename', (req, res) => {
   }
 });
 
-// Rota padrão para SPA (já que express.static já serve os arquivos)
+// Rota padrão para SPA
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
